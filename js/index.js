@@ -1,46 +1,31 @@
+import Generations from './generations.js';
+
 $(function() {
-  
+
+  var generations = new Generations();
+  $.exposed = { generations: generations }
+
   $("#btn-initialize").click(function(event) {
-    $(this).prop('disabled', true);
+    //$(this).prop('disabled', true);
     var num = $("#num-individuals").val();
-    var population = getRandomPopulation(num);
-    var cpDiv = $("#current-population");
-    cpDiv.html(population.join("<br>"));
-    cpDiv.show();
-  })
+    generations.initRandom(num);
+    generations.showInCarousel();
+    $("#generations-jumbotron").show();
+  });
 });
 
-function getRandomPopulation(numChromosomes) {
-  pop = [];
-  for (var i = 0; i < numChromosomes; i++) {
-    pop.push(new Chromosome());
-  }
-  return pop;
+jQuery.createNewGeneration = function createNewGeneration() {
+  let archetypeIndex = $('input[name=selectedIndividual]:checked').val();
+  $.exposed.generations.createNewGeneration(archetypeIndex);
+  $.exposed.generations.showInCarousel();
 }
 
-var Chromosome = function(codons = null) {
-    if (codons) {
-      this.codons = codons;
-    } else {
-      this.initRandomCodons();
-    }
-}
-
-Chromosome.prototype = {
-  CODON_MAX_VALUE: 6,
-  CHROMOSOME_NUM_CODONS: 40,
-  
-  codons: [],
-  
-  toString: function() {
-    return this.codons.join("");
-  },
-  
-  initRandomCodons: function() {
-    c = [];
-    for (var i = 0; i < this.CHROMOSOME_NUM_CODONS; i++) {
-      c.push(Math.floor(Math.random() * this.CODON_MAX_VALUE) + 1);
-    }
-    this.codons = c;
-  }
+jQuery.showAlert = function showAlert(text) {
+  let div = $('<div>').addClass('alert alert-warning alert-dismissible fade show').attr('role', 'alert');
+  div.append(text);
+  let button = $('<button>').addClass('close').attr('data-dismiss', 'alert').attr('aria-label', 'Close');
+  button.append($('<span>').attr('aria-hidden', 'true').append('&times;'));
+  div.append(button);
+  $('#errors').empty().append(div);
+  $('#errors')[0].scrollIntoView();
 }
