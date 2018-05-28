@@ -9,6 +9,28 @@ class Generations {
     return "Generations: " + this.generations.length;
   }
 
+  // https://stackoverflow.com/questions/34034475/edit-and-save-a-file-locally-with-js
+  saveAsFile(name = "generations") {
+    var blob = new Blob([JSON.stringify(this)], {
+      "type": "application/json"
+    });
+    var a = document.createElement("a");
+    a.download = name;
+    a.href = URL.createObjectURL(blob);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  parseJson(json) {
+    let obj = JSON.parse(json);
+    let generations = [];
+    for (let generation of obj["generations"]) {
+      generations.push(Population.loadFromHash(generation));
+    }
+    this.generations = generations;
+  }
+
   showInCarousel() {
     var carousel = $("#generations-carousel > .carousel-inner");
     carousel.empty();

@@ -9,6 +9,14 @@ class Population {
     return this.individuals.join(" ::: ");
   }
 
+  static loadFromHash(h) {
+    let individuals = [];
+    for (let individual of h["individuals"]) {
+      individuals.push(Individual.loadFromHash(individual));
+    }
+    return new Population(individuals);
+  }
+
   initRandom(numIndividuals) {
     var individuals = [];
     for (var i = 0; i < numIndividuals; i++) {

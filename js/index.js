@@ -13,6 +13,30 @@ $(function() {
     generations.showInCarousel();
     $("#generations-jumbotron").show();
   });
+
+  $("#btn-save").click(function(event) {
+    // TODO: choose a filename
+    generations.saveAsFile();
+  });
+
+  // https://www.abeautifulsite.net/whipping-file-inputs-into-shape-with-bootstrap-3
+  $(document).on('change', ':file', function() {
+    var input = $(this),
+        numFiles = input.get(0).files ? input.get(0).files.length : 1,
+        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+    input.trigger('fileselect', [numFiles, label]);
+  });
+
+  $("#btn-load").on('fileselect', function(event, numFiles, label) {
+    // https://stackoverflow.com/questions/34034475/edit-and-save-a-file-locally-with-js
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      generations.parseJson(e.target.result);
+      generations.showInCarousel();
+      $("#generations-jumbotron").show();
+    };
+    reader.readAsText(new Blob([event.target.files[0]], {"type": "application/json"}));
+  });
 });
 
 jQuery.createNewGeneration = function createNewGeneration() {

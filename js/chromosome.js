@@ -4,16 +4,20 @@ export const CHROMOSOME_NUM_CODONS = CHROMOSOME_GENE_SIZES.reduce((x, y) => x + 
 export const NUM_MUTATIONS = 2;
 
 class Chromosome {
-  constructor(codons = null) {
+  constructor(codons = null, oldCodons = null) {
     // Use slice() to make a copy. Since codons is an array of Ints it works fine.
     this.codons = (codons) ? codons.slice() : this.initRandomCodons();
 
     // If we mutate, old codons are saved here.
-    this.oldCodons = undefined;
+    this.oldCodons = (oldCodons) ? oldCodons : undefined;
   }
 
   toString() {
     return this.codons.join("");
+  }
+
+  static loadFromHash(h) {
+    return new Chromosome(h["codons"], h["oldCodons"]);
   }
 
   displayAsTable() {

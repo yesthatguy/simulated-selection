@@ -2,6 +2,10 @@
   font-family: monospace;
 }
 
+.label-btn {
+  margin: 0;
+}
+
 #generations-carousel {
   margin-left: 80px;
   margin-right: 80px;

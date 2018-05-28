@@ -12,6 +12,14 @@ class Individual {
     return this.chromosomes.join(", ");
   }
 
+  static loadFromHash(h) {
+    let chromosomes = [];
+    for (let chromosome of h["chromosomes"]) {
+      chromosomes.push(Chromosome.loadFromHash(chromosome));
+    }
+    return new Individual(chromosomes);
+  }
+
   displayAsTable() {
     let div = $('<div>');
     for (let i = 0; i < this.chromosomes.length; i++) {
