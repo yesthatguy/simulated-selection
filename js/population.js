@@ -120,7 +120,7 @@ class Population {
           row.append($('<td>').append($('<input type="radio" name="selectedIndividual" value="' + i + '">')));
         }
         row.append($('<td>').attr('scope', 'row').text(i));
-        row.append($('<td>').addClass('text-monospace').text(this.individuals[i]));
+        row.append($('<td>').append(this.individuals[i].displayAsTable()));
         table.append(row);
     }
 

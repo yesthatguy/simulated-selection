@@ -12,6 +12,14 @@ class Individual {
     return this.chromosomes.join(", ");
   }
 
+  displayAsTable() {
+    let div = $('<div>');
+    for (let i = 0; i < this.chromosomes.length; i++) {
+      div.append(this.chromosomes[i].displayAsTable());
+    }
+    return div;
+  }
+
   initRandomChromosomes() {
     var c = [];
     for (var i = 0; i < INITIAL_NUM_CHROMOSOMES; i++) {

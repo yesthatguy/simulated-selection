@@ -35,6 +35,15 @@ class Generations {
     this.generations = [pop];
   }
 
+  initRandomRange(min, max) {
+    if (min > max) {
+      $.showAlert("Max must be greater than min.");
+      return;
+    }
+    let num = Math.floor(Math.random() * (max - min)) + min;
+    this.initRandom(num);
+  }
+
   // archetypeIndex is integer 0-n indicating most fit individual
   createNewGeneration(archetypeIndex) {
     if (archetypeIndex === undefined) {

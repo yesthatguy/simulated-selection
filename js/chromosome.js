@@ -1,5 +1,6 @@
 export const CODON_MAX_VALUE = 6;
-export const CHROMOSOME_NUM_CODONS = 40;
+export const CHROMOSOME_GENE_SIZES = [4, 1, 3, 1, 4, 1, 2, 3, 1, 1, 1];
+export const CHROMOSOME_NUM_CODONS = CHROMOSOME_GENE_SIZES.reduce((x, y) => x + y);
 export const NUM_MUTATIONS = 2;
 
 class Chromosome {
@@ -14,6 +15,20 @@ class Chromosome {
   toString() {
     return this.codons.join("");
   }
+
+  displayAsTable() {
+    let row = $('<tr>');
+    let index = 0;
+    for(var geneNum = 0; geneNum < CHROMOSOME_GENE_SIZES.length; geneNum++){
+      let size = CHROMOSOME_GENE_SIZES[geneNum];
+      let gene = this.codons.slice(index, index + size);
+      row.append($('<td>').addClass('text-monospace').text(gene.join("")));
+      index += size;
+    }
+    return $('<table>').addClass('codon').append(row);
+  }
+
+
 
   clone() {
     return new Chromosome(this.codons);

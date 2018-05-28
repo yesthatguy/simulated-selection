@@ -7,8 +7,9 @@ $(function() {
 
   $("#btn-initialize").click(function(event) {
     //$(this).prop('disabled', true);
-    var num = $("#num-individuals").val();
-    generations.initRandom(num);
+    var min = parseInt($("#num-individuals-min").val());
+    var max = parseInt($("#num-individuals-max").val());
+    generations.initRandomRange(min, max);
     generations.showInCarousel();
     $("#generations-jumbotron").show();
   });
