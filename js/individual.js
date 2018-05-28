@@ -4,8 +4,11 @@ export const INITIAL_NUM_CHROMOSOMES = 2;
 export const FITNESS_SCORE_PER_EXTRA_CHROMOSOME = 95;
 
 class Individual {
-  constructor(chromosomes = null) {
-    this.chromosomes = (chromosomes) ? chromosomes : this.initRandomChromosomes();
+  constructor(opts = {}) {
+    this.chromosomes = opts["chromosomes"] || this.initRandomChromosomes();
+
+    this.parents = opts["parents"];
+    this.eliminatedChromosomes = opts["eliminatedChromosomes"] || [];
   }
 
   toString() {
@@ -21,11 +24,23 @@ class Individual {
   }
 
   displayAsTable() {
-    let div = $('<div>');
+    let div = $('<div>').data('html', true);
     for (let i = 0; i < this.chromosomes.length; i++) {
       div.append(this.chromosomes[i].displayAsTable());
     }
+    div.prop('title', this.getTooltipHtml()).tooltip({"delay": 300});
     return div;
+  }
+
+  getTooltipHtml() {
+    let rows = [];
+    if (this.parents) {
+      rows.push("Parents: " + this.parents.join(" + "));
+    }
+    if (this.eliminatedChromosomes.length) {
+      rows.push("Eliminated: " + this.eliminatedChromosomes);
+    }
+    return rows.length ? rows.join("<br>") : "First-gen individual";
   }
 
   initRandomChromosomes() {
@@ -36,15 +51,25 @@ class Individual {
     return c;
   }
 
+  isEmpty() {
+    return this.chromosomes.length == 0;
+  }
+
   // Calculates difference from this individual to a defined archetype (another
   // Individual selected as the most fit). Lower difference = more fit.
-  calculateDifference(archetype) {
+  calculateNumericDifference(archetype) {
     var difference = 0;
     for (var i = 0; i < this.chromosomes.length; i++) {
-      difference += this.chromosomes[i].calculateDifference(archetype.chromosomes[i]);
+      difference += this.chromosomes[i].calculateNumericDifference(archetype.chromosomes[i]);
     }
     difference += FITNESS_SCORE_PER_EXTRA_CHROMOSOME * Math.max(0, archetype.chromosomes.length - this.chromosomes.length);
     return difference;
+  }
+
+  calculateArrayDifference(archetype) {
+    let diffs = this.chromosomes.map((c, i) => c.calculateArrayDifference(archetype.chromosomes[i]));
+    // Element-wise sum
+    return diffs.reduce((sum, x) => sum.map((j, i) => j + x[i]))
   }
 
   generateOffspring(other, myFitness, otherFitness) {
@@ -53,7 +78,7 @@ class Individual {
     for (let i = 0; i < numChromosomes; i++) {
       newChromosomes.push(this.weightedSelectChromosome([this.chromosomes[i], other.chromosomes[i]], [myFitness, otherFitness]));
     }
-    return new Individual(newChromosomes);
+    return new Individual({"chromosomes": newChromosomes, "parents": [this, other]});
   }
 
   weightedSelectChromosome(chromosomes, weights) {
@@ -83,7 +108,23 @@ class Individual {
 
   // Modifies this individual
   mutate() {
-    this.chromosomes = this.chromosomes.map((c) => c.generateNewMutation())
+    // Random variable mutation
+    this.chromosomes = this.chromosomes.map(c => c.generateNewMutation());
+
+    // Emergent mutation - Elimination and Duplication
+    let newChromosomes = [];
+    for (let i = 0; i < this.chromosomes.length; i++) {
+      if (this.chromosomes[i].hasEliminationGene()) {
+        this.eliminatedChromosomes.push(this.chromosomes[i]);
+      } else {
+        if (this.chromosomes[i].hasDuplicationGene()) {
+          this.chromosomes[i].resetDuplicationGene();
+          newChromosomes.push(Chromosome.clone(this.chromosomes[i]));
+        }
+        newChromosomes.push(this.chromosomes[i]);
+      }
+    }
+    this.chromosomes = newChromosomes;
   }
 }
 

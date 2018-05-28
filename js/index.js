@@ -40,8 +40,10 @@ $(function() {
 });
 
 jQuery.createNewGeneration = function createNewGeneration() {
+  var min = parseInt($("#num-individuals-min").val());
+  var max = parseInt($("#num-individuals-max").val());
   let archetypeIndex = $('input[name=selectedIndividual]:checked').val();
-  $.exposed.generations.createNewGeneration(archetypeIndex);
+  $.exposed.generations.createNewGeneration(archetypeIndex, min, max);
   $.exposed.generations.showInCarousel();
 }
 

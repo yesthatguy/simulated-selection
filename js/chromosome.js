@@ -4,12 +4,13 @@ export const CHROMOSOME_NUM_CODONS = CHROMOSOME_GENE_SIZES.reduce((x, y) => x + 
 export const NUM_MUTATIONS = 2;
 
 class Chromosome {
-  constructor(codons = null, oldCodons = null) {
-    // Use slice() to make a copy. Since codons is an array of Ints it works fine.
-    this.codons = (codons) ? codons.slice() : this.initRandomCodons();
+  // Hash object can have keys: "codons", "oldCodons", "mutatedIndices"
+  constructor(opts = {}) {
+    this.codons = opts["codons"] || this.initRandomCodons();
 
     // If we mutate, old codons are saved here.
-    this.oldCodons = (oldCodons) ? oldCodons : undefined;
+    this.oldCodons = opts["oldCodons"];
+    this.mutatedIndices = opts["mutatedIndices"];
   }
 
   toString() {
@@ -17,32 +18,50 @@ class Chromosome {
   }
 
   static loadFromHash(h) {
-    return new Chromosome(h["codons"], h["oldCodons"]);
+    return new Chromosome(h);
+  }
+
+  static clone(c) {
+    // Use slice() to make a copy. Since codons is an array of Ints it works fine.
+    return new Chromosome({"codons": c.codons.slice()});
   }
 
   displayAsTable() {
-    let row = $('<tr>');
+    let row = $('<tr>').addClass('text-monospace');
     let index = 0;
-    for(var geneNum = 0; geneNum < CHROMOSOME_GENE_SIZES.length; geneNum++){
+    for(let geneNum = 0; geneNum < CHROMOSOME_GENE_SIZES.length; geneNum++){
       let size = CHROMOSOME_GENE_SIZES[geneNum];
-      let gene = this.codons.slice(index, index + size);
-      row.append($('<td>').addClass('text-monospace').text(gene.join("")));
+      let geneTd = $('<td>');
+      for (let j = index; j < index + size; j++) {
+        let mutated = this.mutatedIndices && this.mutatedIndices.includes(j);
+        let codonClass = mutated ? 'mutatedCodon' : '';
+        geneTd.append($('<span>').addClass(codonClass).text(this.codons[j]));
+      }
+      row.append(geneTd);
       index += size;
     }
     return $('<table>').addClass('codon').append(row);
   }
 
+  hasEliminationGene() {
+    return (this.codons[CHROMOSOME_NUM_CODONS - 1] < CODON_MAX_VALUE);
+  }
 
+  hasDuplicationGene() {
+    return (this.codons[CHROMOSOME_NUM_CODONS - 2] > 1);
+  }
 
-  clone() {
-    return new Chromosome(this.codons);
+  resetDuplicationGene() {
+    this.codons[CHROMOSOME_NUM_CODONS - 2] = 1;
   }
 
   initRandomCodons() {
     var c = [];
-    for (var i = 0; i < CHROMOSOME_NUM_CODONS; i++) {
+    for (var i = 0; i < CHROMOSOME_NUM_CODONS - 2; i++) {
       c.push(this.generateRandomCodon());
     }
+    c.push(1); // Add gene always starts as 1
+    c.push(6); // Subtract gene always starts as 6
     return c;
   }
 
@@ -50,7 +69,7 @@ class Chromosome {
     return Math.floor(Math.random() * CODON_MAX_VALUE) + 1;
   }
 
-  calculateDifference(archetypeChromosome) {
+  calculateNumericDifference(archetypeChromosome) {
     var difference = 0;
     for (var i = 0; i < CHROMOSOME_NUM_CODONS; i++) {
       difference += Math.abs(this.codons[i] - archetypeChromosome.codons[i]);
@@ -58,9 +77,22 @@ class Chromosome {
     return difference;
   }
 
+  // Generates an array containing the number of codons with each degree of
+  // difference. diff[0] contains the number of codons that are the same.
+  // diff[1] contains the number of codons 1 different, etc.
+  calculateArrayDifference(archetypeChromosome) {
+    let diff = Array.from({length: CODON_MAX_VALUE}, x => 0);
+    if (archetypeChromosome) {
+      for (var i = 0; i < CHROMOSOME_NUM_CODONS; i++) {
+        diff[Math.abs(this.codons[i] - archetypeChromosome.codons[i])] += 1;
+      }
+    }
+    return diff;
+  }
+
   // Generates a new Chromosome
   generateNewMutation() {
-    let c = this.clone();
+    let c = Chromosome.clone(this);
     c.mutate();
     return c;
   }
@@ -70,10 +102,10 @@ class Chromosome {
     // Use slice() to make a copy
     this.oldCodons = this.codons.slice();
 
-    let indicesToMutate = this.selectIndicesToMutate();
+    this.selectIndicesToMutate();
 
     // Mutate those indices
-    for (let index of indicesToMutate) {
+    for (let index of this.mutatedIndices) {
       this.codons[index] = this.generateRandomCodon();
     }
   }
@@ -89,7 +121,7 @@ class Chromosome {
         numNeeded -= 1;
       }
     }
-    return indicesToMutate;
+    this.mutatedIndices = indicesToMutate;
   }
 }
 

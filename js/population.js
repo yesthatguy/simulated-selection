@@ -25,13 +25,25 @@ class Population {
     this.individuals = individuals;
   }
 
+  initRandomRange(min, max) {
+    this.initRandom(this.getNumIndividuals(min, max));
+  }
+
+  getNumIndividuals(min, max) {
+    if (min > max) {
+      $.showAlert("Max must be greater than min.");
+      return;
+    }
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+
   // Archetype is the individual selected from this generation which is
   // considered to be most fit.
   // archetypeIndex is integer 0-n indicating archetype's position
-  createNewGeneration(archetypeIndex) {
+  createNewGeneration(archetypeIndex, min, max) {
     let archetype = this.individuals[archetypeIndex];
     let fitnessScores = this.calculatePopulationFitness(archetype);
-    let parentIndices = this.selectNParents(this.individuals.length, fitnessScores);
+    let parentIndices = this.selectNParents(this.getNumIndividuals(min, max), fitnessScores);
     console.log("parentIndices", parentIndices);
     let newIndividuals = this.generateOffspring(parentIndices, fitnessScores);
     let newPopulation = new Population(newIndividuals);
@@ -39,16 +51,34 @@ class Population {
     return newPopulation;
   }
 
-  calculatePopulationFitness(archetype) {
+  // This was the original computation used to calculate population fitness.
+  // It has been replaced by a codon-level algorithm.
+  calculatePopulationFitnessAlt(archetype) {
     let differences = [];
     for (let i = 0; i < this.individuals.length; i++) {
-      differences.push(this.individuals[i].calculateDifference(archetype));
+      differences.push(this.individuals[i].calculateNumericDifference(archetype));
     }
     console.log("differences", differences);
 
     // Given that the archetype will always have score = 0 and other typical
     // scores are 140+ for two chromosomes, trying an inverse log relationship.
     let initialFitness = differences.map((d) => (d == 0) ? 1 : 1 / Math.log(d));
+    console.log("initialFitness", initialFitness);
+
+    let totalFitness = initialFitness.reduce((sum, x) => sum + x);
+    let normalizedFitness = initialFitness.map((f) => f / totalFitness);
+    return normalizedFitness;
+  }
+
+  calculatePopulationFitness(archetype) {
+    let differences = [];
+    for (let i = 0; i < this.individuals.length; i++) {
+      differences.push(this.individuals[i].calculateArrayDifference(archetype));
+    }
+    console.log("differences", differences);
+
+    let maxD1 = Math.max(...differences.map((d) => d[1]));
+    let initialFitness = differences.map((d) => d[0] + d[1] / maxD1);
     console.log("initialFitness", initialFitness);
 
     let totalFitness = initialFitness.reduce((sum, x) => sum + x);
@@ -110,6 +140,7 @@ class Population {
     for (let individual of this.individuals) {
       individual.mutate();
     }
+    this.individuals = this.individuals.filter((i) => !i.isEmpty());
   }
 
   displayAsTable(showButtons = false) {

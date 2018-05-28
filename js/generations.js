@@ -58,21 +58,18 @@ class Generations {
   }
 
   initRandomRange(min, max) {
-    if (min > max) {
-      $.showAlert("Max must be greater than min.");
-      return;
-    }
-    let num = Math.floor(Math.random() * (max - min)) + min;
-    this.initRandom(num);
+    var pop = new Population();
+    pop.initRandomRange(min, max);
+    this.generations = [pop];
   }
 
   // archetypeIndex is integer 0-n indicating most fit individual
-  createNewGeneration(archetypeIndex) {
+  createNewGeneration(archetypeIndex, min, max) {
     if (archetypeIndex === undefined) {
       $.showAlert("You must select an archetype.");
       return;
     }
-    this.generations.push(this.latest().createNewGeneration(archetypeIndex));
+    this.generations.push(this.latest().createNewGeneration(archetypeIndex, min, max));
   }
 }
 
