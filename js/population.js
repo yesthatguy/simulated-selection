@@ -1,8 +1,8 @@
 import Individual from './individual.js';
 
 class Population {
-  constructor(individuals = null) {
-    this.individuals = (individuals) ? individuals : [];
+  constructor(opts = {}) {
+    this.individuals = opts["individuals"] || [];
   }
 
   toString() {
@@ -10,11 +10,8 @@ class Population {
   }
 
   static loadFromHash(h) {
-    let individuals = [];
-    for (let individual of h["individuals"]) {
-      individuals.push(Individual.loadFromHash(individual));
-    }
-    return new Population(individuals);
+    h["individuals"] = h["individuals"].map(i => Individual.loadFromHash(i));
+    return new Population(h);
   }
 
   initRandom(numIndividuals) {
@@ -46,7 +43,7 @@ class Population {
     let parentIndices = this.selectNParents(this.getNumIndividuals(min, max), fitnessScores);
     console.log("parentIndices", parentIndices);
     let newIndividuals = this.generateOffspring(parentIndices, fitnessScores);
-    let newPopulation = new Population(newIndividuals);
+    let newPopulation = new Population({"individuals": newIndividuals});
     newPopulation.mutate();
     return newPopulation;
   }

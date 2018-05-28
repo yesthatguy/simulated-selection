@@ -16,11 +16,14 @@ class Individual {
   }
 
   static loadFromHash(h) {
-    let chromosomes = [];
-    for (let chromosome of h["chromosomes"]) {
-      chromosomes.push(Chromosome.loadFromHash(chromosome));
+    h["chromosomes"] = h["chromosomes"].map(c => Chromosome.loadFromHash(c));
+    if (h["parents"]) {
+      h["parents"] = h["parents"].map(i => Individual.loadFromHash(i));
     }
-    return new Individual(chromosomes);
+    if (h["eliminatedChromosomes"]) {
+      h["eliminatedChromosomes"] = h["eliminatedChromosomes"].map(c => Chromosome.loadFromHash(c));
+    }
+    return new Individual(h);
   }
 
   displayAsTable() {

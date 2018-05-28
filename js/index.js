@@ -2,21 +2,20 @@ import Generations from './generations.js';
 
 $(function() {
 
-  var generations = new Generations();
-  $.exposed = { generations: generations }
+  $.exposed = { generations: new Generations() };
 
   $("#btn-initialize").click(function(event) {
     //$(this).prop('disabled', true);
     var min = parseInt($("#num-individuals-min").val());
     var max = parseInt($("#num-individuals-max").val());
-    generations.initRandomRange(min, max);
-    generations.showInCarousel();
+    $.exposed.generations.initRandomRange(min, max);
+    $.exposed.generations.showInCarousel();
     $("#generations-jumbotron").show();
   });
 
   $("#btn-save").click(function(event) {
     // TODO: choose a filename
-    generations.saveAsFile();
+    $.exposed.generations.saveAsFile();
   });
 
   // https://www.abeautifulsite.net/whipping-file-inputs-into-shape-with-bootstrap-3
@@ -31,8 +30,8 @@ $(function() {
     // https://stackoverflow.com/questions/34034475/edit-and-save-a-file-locally-with-js
     var reader = new FileReader();
     reader.onload = function(e) {
-      generations.parseJson(e.target.result);
-      generations.showInCarousel();
+      $.exposed.generations = Generations.loadFromHash(JSON.parse(e.target.result));
+      $.exposed.generations.showInCarousel();
       $("#generations-jumbotron").show();
     };
     reader.readAsText(new Blob([event.target.files[0]], {"type": "application/json"}));

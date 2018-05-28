@@ -1,8 +1,8 @@
 import Population from './population.js';
 
 class Generations {
-  constructor(generations = null) {
-    this.generations = (generations) ? generations : [];
+  constructor(opts = {}) {
+    this.generations = opts["generations"] || [];
   }
 
   toString() {
@@ -22,13 +22,9 @@ class Generations {
     document.body.removeChild(a);
   }
 
-  parseJson(json) {
-    let obj = JSON.parse(json);
-    let generations = [];
-    for (let generation of obj["generations"]) {
-      generations.push(Population.loadFromHash(generation));
-    }
-    this.generations = generations;
+  static loadFromHash(h) {
+    h["generations"] = h["generations"].map(g => Population.loadFromHash(g));
+    return new Generations(h);
   }
 
   showInCarousel() {
