@@ -1,5 +1,5 @@
 export const CODON_MAX_VALUE = 6;
-export const CHROMOSOME_GENE_SIZES = [4, 1, 3, 1, 4, 1, 2, 3, 1, 1, 1];
+export const CHROMOSOME_GENE_SIZES = [7,6,4,2,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,1,1];
 export const CHROMOSOME_NUM_CODONS = CHROMOSOME_GENE_SIZES.reduce((x, y) => x + y);
 export const NUM_MUTATIONS = 2;
 
