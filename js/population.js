@@ -4,7 +4,8 @@ class Population {
   constructor(opts = {}) {
     this.generationIndex = opts["generationIndex"];
     this.individuals = opts["individuals"] || [];
-    this.previousArchetype = opts["previousArchetype"];
+    this.previousArchetypeIndex = opts["previousArchetypeIndex"];
+    this.archetypeIndex = opts["archetypeIndex"];
   }
 
   toString() {
@@ -12,27 +13,23 @@ class Population {
   }
 
   static loadFromHash(h) {
-    h["generationIndex"] = parseInt(h["generationIndex"]);
     h["individuals"] = h["individuals"].map(i => Individual.loadFromHash(i));
-    if (previousArchetype !== undefined) {
-      h["previousArchetype"] = Individual.loadFromHash(h["previousArchetype"]);
-    }
     return new Population(h);
   }
 
   initRandom(numIndividuals) {
     var individuals = [];
     for (var i = 0; i < numIndividuals; i++) {
-      individuals.push(new Individual());
+      individuals.push(new Individual({"generationIndex": this.generationIndex, "index": i}));
     }
     this.individuals = individuals;
   }
 
   initRandomRange(min, max) {
-    this.initRandom(this.getNumIndividuals(min, max));
+    this.initRandom(this.getRandomNumIndividuals(min, max));
   }
 
-  getNumIndividuals(min, max) {
+  getRandomNumIndividuals(min, max) {
     if (min > max) {
       $.showAlert("Max must be greater than min.");
       return;
@@ -44,34 +41,16 @@ class Population {
   // considered to be most fit.
   // archetypeIndex is integer 0-n indicating archetype's position
   createNewGeneration(archetypeIndex, min, max) {
+    this.archetypeIndex = archetypeIndex;
     let archetype = this.individuals[archetypeIndex];
     archetype.isArchetype = true;
     let fitnessScores = this.calculatePopulationFitness(archetype);
-    let parentIndices = this.selectNParents(this.getNumIndividuals(min, max), fitnessScores);
+    let parentIndices = this.selectNParents(this.getRandomNumIndividuals(min, max), fitnessScores);
     console.log("parentIndices", parentIndices);
     let newIndividuals = this.generateOffspring(parentIndices, fitnessScores);
-    let newPopulation = new Population({"individuals": newIndividuals, "previousArchetype": archetype});
+    let newPopulation = new Population({"individuals": newIndividuals, "previousArchetypeIndex": archetypeIndex, "generationIndex": this.generationIndex + 1});
     newPopulation.mutate();
     return newPopulation;
-  }
-
-  // This was the original computation used to calculate population fitness.
-  // It has been replaced by a codon-level algorithm.
-  calculatePopulationFitnessAlt(archetype) {
-    let differences = [];
-    for (let i = 0; i < this.individuals.length; i++) {
-      differences.push(this.individuals[i].calculateNumericDifference(archetype));
-    }
-    console.log("differences", differences);
-
-    // Given that the archetype will always have score = 0 and other typical
-    // scores are 140+ for two chromosomes, trying an inverse log relationship.
-    let initialFitness = differences.map((d) => (d == 0) ? 1 : 1 / Math.log(d));
-    console.log("initialFitness", initialFitness);
-
-    let totalFitness = initialFitness.reduce((sum, x) => sum + x);
-    let normalizedFitness = initialFitness.map((f) => f / totalFitness);
-    return normalizedFitness;
   }
 
   calculatePopulationFitness(archetype) {
@@ -130,12 +109,15 @@ class Population {
   // Returns an array of Individuals
   generateOffspring(parentIndices, fitnessScores) {
     let offspring = [];
-    for (let couple of parentIndices) {
+    for (let i = 0; i < parentIndices.length; i++) {
+      let couple = parentIndices[i];
       let parent1 = this.individuals[couple[0]];
       let parent2 = this.individuals[couple[1]];
       let fitness1 = fitnessScores[couple[0]];
       let fitness2 = fitnessScores[couple[1]];
-      offspring.push(parent1.generateOffspring(parent2, fitness1, fitness2));
+      let newIndividual = parent1.generateOffspring(parent2, fitness1, fitness2);
+      newIndividual.index = i;
+      offspring.push(newIndividual);
     }
     return offspring;
   }
@@ -168,7 +150,7 @@ class Population {
         let detailCell = $('<td>').attr('scope', 'row').text("ⓘ");
         let showDetail = this.individuals[i].showDetail.bind(this.individuals[i]);
         detailCell.click(function(e) {
-          var div = $(e.currentTarget).closest('.carousel-inner').find('.individual-detail');
+          var div = $(e.currentTarget).closest('.carousel-item').find('.individual-detail');
           div.empty();
           div.append(showDetail());
         });

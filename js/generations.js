@@ -76,8 +76,12 @@ class Generations {
     return this.generations[this.generations.length - 1];
   }
 
+  getIndividual(generationIndex, individualIndex) {
+    return this.generations[generationIndex].individuals[individualIndex];
+  }
+
   initRandom(numIndividuals) {
-    var pop = new Population();
+    var pop = new Population({"generationIndex": 0});
     pop.initRandom(numIndividuals);
     this.generations = [pop];
   }
@@ -87,7 +91,7 @@ class Generations {
   }
 
   initRandomRange(min, max) {
-    var pop = new Population();
+    var pop = new Population({"generationIndex": 0});
     pop.initRandomRange(min, max);
     this.generations = [pop];
   }

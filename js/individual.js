@@ -6,7 +6,9 @@ class Individual {
   constructor(opts = {}) {
     this.chromosomes = opts["chromosomes"] || this.initRandomChromosomes();
 
-    this.parents = opts["parents"];
+    this.generationIndex = opts["generationIndex"];
+    this.index = opts["index"];
+    this.parentIndices = opts["parentIndices"];
     this.eliminatedChromosomes = opts["eliminatedChromosomes"] || [];
     this.isArchetype = opts["isArchetype"];
   }
@@ -18,9 +20,6 @@ class Individual {
 
   static loadFromHash(h) {
     h["chromosomes"] = h["chromosomes"].map(c => Chromosome.loadFromHash(c));
-    if (h["parents"]) {
-      h["parents"] = h["parents"].map(i => Individual.loadFromHash(i));
-    }
     if (h["eliminatedChromosomes"]) {
       h["eliminatedChromosomes"] = h["eliminatedChromosomes"].map(c => Chromosome.loadFromHash(c));
     }
@@ -41,8 +40,8 @@ class Individual {
 
   getTooltipHtml() {
     let rows = [];
-    if (this.parents) {
-      rows.push("Parents: " + this.parents.join(" + "));
+    if (this.parentIndices) {
+      rows.push("Parents: " + this.parentIndices.join(" + "));
     }
     if (this.eliminatedChromosomes.length) {
       rows.push("Eliminated: " + this.eliminatedChromosomes);
@@ -52,14 +51,19 @@ class Individual {
 
   showDetail() {
     let div = $('<div>');
-    div.append("This individual:");
+    div.append("This individual: " + this.index);
     div.append(this.displayAsTable());
-    if (this.parents) {
+    if (this.parentIndices) {
       div.append("Parents:");
-      for (let parent of this.parents) {
-        div.append(parent.displayAsTable());
-        div.append($("<hr>"));
+      let table = $('<table>');
+      for (let parentIndex of this.parentIndices) {
+        let parent = $.exposed.generations.getIndividual(this.generationIndex - 1, parentIndex);
+        let tr = $('<tr>');
+        tr.append($('<td>').append(parent.index));
+        tr.append($('<td>').append(parent.displayAsTable()));
+        table.append(tr);
       }
+      div.append(table);
     }
     return div;
   }
@@ -100,7 +104,7 @@ class Individual {
     for (let i = 0; i < numChromosomes; i++) {
       newChromosomes.push(this.weightedSelectChromosome([this.chromosomes[i], other.chromosomes[i]], [myFitness, otherFitness]));
     }
-    return new Individual({"chromosomes": newChromosomes, "parents": [this, other]});
+    return new Individual({"chromosomes": newChromosomes, "parentIndices": [this.index, other.index], "generationIndex": this.generationIndex + 1});
   }
 
   // If the two individuals have different numbers of chromosomes, randomly
