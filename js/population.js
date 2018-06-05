@@ -130,6 +130,7 @@ class Population {
   }
 
   displayAsTable(showButtons = false) {
+    let outerDiv = $('<div>').addClass("horizontal-scroll");
     var table = $('<table>').addClass('table');
     var headerRow = $('<tr>');
     if (showButtons) {
@@ -161,18 +162,18 @@ class Population {
         table.append(row);
     }
 
-    let div = $('<div>');
-    div.append(table);
+
+    outerDiv.append(table);
     if (showButtons) {
       let newGenButton = $('<button>').addClass("btn btn-outline-primary").append("New Generation");
       newGenButton.click(function(event) { $.createNewGeneration() });
-      div.append(newGenButton);
+      outerDiv.append(newGenButton);
     }
 
     let detailDiv = $('<div>').addClass('individual-detail mt-3');
-    div.append(detailDiv);
+    outerDiv.append(detailDiv);
 
-    return div;
+    return outerDiv;
   }
 }
 

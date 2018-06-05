@@ -38,3 +38,8 @@ table.codon td {
 .archetype {
   background-color: fuchsia;
 }
+
+.horizontal-scroll {
+  white-space: nowrap;
+  overflow-x: auto;
+}
