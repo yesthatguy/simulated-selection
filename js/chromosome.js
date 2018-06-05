@@ -1,7 +1,4 @@
 export const CODON_MAX_VALUE = 6;
-export const CHROMOSOME_GENE_SIZES = [7,6,4,2,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,1,1];
-export const CHROMOSOME_NUM_CODONS = CHROMOSOME_GENE_SIZES.reduce((x, y) => x + y);
-export const NUM_MUTATIONS = 2;
 
 class Chromosome {
   // Hash object can have keys: "codons", "oldCodons", "mutatedIndices"
@@ -23,12 +20,14 @@ class Chromosome {
 
   static clone(c) {
     // Use slice() to make a copy. Since codons is an array of Ints it works fine.
-    return new Chromosome({"codons": c.codons.slice()});
+    let codons = c.codons.slice();
+    return new Chromosome({"codons": codons});
   }
 
   displayAsTable() {
     let row = $('<tr>').addClass('text-monospace');
     let index = 0;
+    const CHROMOSOME_GENE_SIZES = $.exposed.generations.config["array-chromosome-gene-sizes"];
     for(let geneNum = 0; geneNum < CHROMOSOME_GENE_SIZES.length; geneNum++){
       let size = CHROMOSOME_GENE_SIZES[geneNum];
       let geneTd = $('<td>');
@@ -43,23 +42,32 @@ class Chromosome {
     return $('<table>').addClass('codon').append(row);
   }
 
+  static numCodons() {
+    return $.exposed.generations.config["array-chromosome-gene-sizes"].reduce((x, y) => x + y);
+  }
+
   hasEliminationGene() {
-    return (this.codons[CHROMOSOME_NUM_CODONS - 1] < CODON_MAX_VALUE);
+    return (this.codons[Chromosome.numCodons() - 1] < CODON_MAX_VALUE);
   }
 
   hasDuplicationGene() {
-    return (this.codons[CHROMOSOME_NUM_CODONS - 2] > 1);
+    return (this.codons[Chromosome.numCodons() - 2] > 1);
   }
 
   resetDuplicationGene() {
-    this.codons[CHROMOSOME_NUM_CODONS - 2] = 1;
+    this.codons[Chromosome.numCodons() - 2] = 1;
+  }
+
+  resetScaleGene() {
+    this.codons[Chromosome.numCodons() - 3] = 1;
   }
 
   initRandomCodons() {
     var c = [];
-    for (var i = 0; i < CHROMOSOME_NUM_CODONS - 2; i++) {
+    for (var i = 0; i < Chromosome.numCodons() - 3; i++) {
       c.push(this.generateRandomCodon());
     }
+    c.push(1); // Scale gene always starts at 1
     c.push(1); // Add gene always starts as 1
     c.push(6); // Subtract gene always starts as 6
     return c;
@@ -71,7 +79,7 @@ class Chromosome {
 
   calculateNumericDifference(archetypeChromosome) {
     var difference = 0;
-    for (var i = 0; i < CHROMOSOME_NUM_CODONS; i++) {
+    for (var i = 0; i < Chromosome.numCodons(); i++) {
       difference += Math.abs(this.codons[i] - archetypeChromosome.codons[i]);
     }
     return difference;
@@ -83,7 +91,7 @@ class Chromosome {
   calculateArrayDifference(archetypeChromosome) {
     let diff = Array.from({length: CODON_MAX_VALUE}, x => 0);
     if (archetypeChromosome) {
-      for (var i = 0; i < CHROMOSOME_NUM_CODONS; i++) {
+      for (var i = 0; i < Chromosome.numCodons(); i++) {
         diff[Math.abs(this.codons[i] - archetypeChromosome.codons[i])] += 1;
       }
     }
@@ -106,16 +114,26 @@ class Chromosome {
 
     // Mutate those indices
     for (let index of this.mutatedIndices) {
-      this.codons[index] = this.generateRandomCodon();
+      if (index == Chromosome.numCodons() - 3) {
+        // Scale gene can only go up or down one number
+        let min = Math.max(this.codons[index] - 1, 1);
+        let max = Math.min(this.codons[index] + 1, CODON_MAX_VALUE);
+        console.log("min", min);
+        console.log("max", max);
+        // From https://stackoverflow.com/a/1527820/6996496
+        this.codons[index] = Math.floor(Math.random() * (max - min + 1)) + min;
+      } else {
+        this.codons[index] = this.generateRandomCodon();
+      }
     }
   }
 
   // Select indices to mutate https://stackoverflow.com/a/48089/6996496
   selectIndicesToMutate() {
     let indicesToMutate = [];
-    let numNeeded = NUM_MUTATIONS;
-    for (let i = 0; i < CHROMOSOME_NUM_CODONS && numNeeded > 0; i++) {
-      let probability = numNeeded / (CHROMOSOME_NUM_CODONS - i);
+    let numNeeded = $.exposed.generations.config["num-mutations"];;
+    for (let i = 0; i < Chromosome.numCodons() && numNeeded > 0; i++) {
+      let probability = numNeeded / (Chromosome.numCodons() - i);
       if (Math.random() < probability) {
         indicesToMutate.push(i);
         numNeeded -= 1;

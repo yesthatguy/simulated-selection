@@ -2,7 +2,9 @@ import Individual from './individual.js';
 
 class Population {
   constructor(opts = {}) {
+    this.generationIndex = opts["generationIndex"];
     this.individuals = opts["individuals"] || [];
+    this.previousArchetype = opts["previousArchetype"];
   }
 
   toString() {
@@ -10,7 +12,11 @@ class Population {
   }
 
   static loadFromHash(h) {
+    h["generationIndex"] = parseInt(h["generationIndex"]);
     h["individuals"] = h["individuals"].map(i => Individual.loadFromHash(i));
+    if (previousArchetype !== undefined) {
+      h["previousArchetype"] = Individual.loadFromHash(h["previousArchetype"]);
+    }
     return new Population(h);
   }
 
@@ -39,11 +45,12 @@ class Population {
   // archetypeIndex is integer 0-n indicating archetype's position
   createNewGeneration(archetypeIndex, min, max) {
     let archetype = this.individuals[archetypeIndex];
+    archetype.isArchetype = true;
     let fitnessScores = this.calculatePopulationFitness(archetype);
     let parentIndices = this.selectNParents(this.getNumIndividuals(min, max), fitnessScores);
     console.log("parentIndices", parentIndices);
     let newIndividuals = this.generateOffspring(parentIndices, fitnessScores);
-    let newPopulation = new Population({"individuals": newIndividuals});
+    let newPopulation = new Population({"individuals": newIndividuals, "previousArchetype": archetype});
     newPopulation.mutate();
     return newPopulation;
   }
@@ -147,6 +154,7 @@ class Population {
       headerRow.append($('<th>'));
     }
     headerRow.append($('<th>').attr('scope', 'col').text('#'));
+    headerRow.append($('<th>').attr('scope', 'col'));
     headerRow.append($('<th>').attr('scope', 'col').text('Chromosomes'));
     table.append(headerRow);
 
@@ -156,17 +164,32 @@ class Population {
           row.append($('<td>').append($('<input type="radio" name="selectedIndividual" value="' + i + '">')));
         }
         row.append($('<td>').attr('scope', 'row').text(i));
-        row.append($('<td>').append(this.individuals[i].displayAsTable()));
+
+        let detailCell = $('<td>').attr('scope', 'row').text("ⓘ");
+        let showDetail = this.individuals[i].showDetail.bind(this.individuals[i]);
+        detailCell.click(function(e) {
+          var div = $(e.currentTarget).closest('.carousel-inner').find('.individual-detail');
+          div.empty();
+          div.append(showDetail());
+        });
+        row.append(detailCell);
+
+        let individualTd = $('<td>').append(this.individuals[i].displayAsTable());
+        row.append(individualTd);
         table.append(row);
     }
 
-    let div = $('<div>')
+    let div = $('<div>');
     div.append(table);
     if (showButtons) {
       let newGenButton = $('<button>').addClass("btn btn-outline-primary").append("New Generation");
       newGenButton.click(function(event) { $.createNewGeneration() });
       div.append(newGenButton);
     }
+
+    let detailDiv = $('<div>').addClass('individual-detail mt-3');
+    div.append(detailDiv);
+
     return div;
   }
 }

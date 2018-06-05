@@ -1,6 +1,5 @@
 import Chromosome from './chromosome.js';
 
-export const INITIAL_NUM_CHROMOSOMES = 2;
 export const FITNESS_SCORE_PER_EXTRA_CHROMOSOME = 95;
 
 class Individual {
@@ -9,10 +8,12 @@ class Individual {
 
     this.parents = opts["parents"];
     this.eliminatedChromosomes = opts["eliminatedChromosomes"] || [];
+    this.isArchetype = opts["isArchetype"];
   }
 
   toString() {
-    return this.chromosomes.join(", ");
+    let prefix = (this.isArchetype) ? "(A) " : "";
+    return prefix + this.chromosomes.join(", ");
   }
 
   static loadFromHash(h) {
@@ -28,6 +29,9 @@ class Individual {
 
   displayAsTable() {
     let div = $('<div>').data('html', true);
+    if (this.isArchetype) {
+      div.addClass('archetype');
+    }
     for (let i = 0; i < this.chromosomes.length; i++) {
       div.append(this.chromosomes[i].displayAsTable());
     }
@@ -46,8 +50,23 @@ class Individual {
     return rows.length ? rows.join("<br>") : "First-gen individual";
   }
 
+  showDetail() {
+    let div = $('<div>');
+    div.append("This individual:");
+    div.append(this.displayAsTable());
+    if (this.parents) {
+      div.append("Parents:");
+      for (let parent of this.parents) {
+        div.append(parent.displayAsTable());
+        div.append($("<hr>"));
+      }
+    }
+    return div;
+  }
+
   initRandomChromosomes() {
     var c = [];
+    const INITIAL_NUM_CHROMOSOMES = $.exposed.generations.config["num-initial-chromosomes"];
     for (var i = 0; i < INITIAL_NUM_CHROMOSOMES; i++) {
       c.push(new Chromosome());
     }
@@ -77,11 +96,20 @@ class Individual {
 
   generateOffspring(other, myFitness, otherFitness) {
     let newChromosomes = [];
-    let numChromosomes = Math.max(this.chromosomes.length, other.chromosomes.length);
+    let numChromosomes = this.selectOffspringNumChromosomes(other);
     for (let i = 0; i < numChromosomes; i++) {
       newChromosomes.push(this.weightedSelectChromosome([this.chromosomes[i], other.chromosomes[i]], [myFitness, otherFitness]));
     }
     return new Individual({"chromosomes": newChromosomes, "parents": [this, other]});
+  }
+
+  // If the two individuals have different numbers of chromosomes, randomly
+  // choose a value in the interval between them (inclusive).
+  selectOffspringNumChromosomes(other) {
+    let min = Math.min(this.chromosomes.length, other.chromosomes.length);
+    let max = Math.max(this.chromosomes.length, other.chromosomes.length);
+    // From https://stackoverflow.com/a/1527820/6996496
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
   weightedSelectChromosome(chromosomes, weights) {
@@ -122,7 +150,9 @@ class Individual {
       } else {
         if (this.chromosomes[i].hasDuplicationGene()) {
           this.chromosomes[i].resetDuplicationGene();
-          newChromosomes.push(Chromosome.clone(this.chromosomes[i]));
+          let duplicatedChromosome = Chromosome.clone(this.chromosomes[i]);
+          duplicatedChromosome.resetScaleGene();
+          newChromosomes.push(duplicatedChromosome);
         }
         newChromosomes.push(this.chromosomes[i]);
       }

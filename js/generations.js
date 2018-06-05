@@ -1,8 +1,17 @@
 import Population from './population.js';
 
+export const DEFAULT_CONFIG = {
+  "num-individuals-min": 8,
+  "num-individuals-max": 12,
+  "array-chromosome-gene-sizes": [7,6,4,2,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,1,1],
+  "num-mutations": 2,
+  "num-initial-chromosomes": 2
+}
+
 class Generations {
   constructor(opts = {}) {
     this.generations = opts["generations"] || [];
+    this.config = opts["config"] || Object.assign({}, DEFAULT_CONFIG);
   }
 
   toString() {
@@ -43,6 +52,26 @@ class Generations {
     }
   }
 
+  readConfig() {
+    for (const key in this.config) {
+      let val = $("#" + key).val();
+      if (val !== undefined) {
+        if (key.startsWith("num-")) {
+          val = parseInt(val);
+        } else if (key.startsWith("array-")) {
+          val = val.split(",").map(x => parseInt(x));
+        }
+        this.config[key] = val;
+      }
+    }
+  }
+
+  showConfig() {
+    for (const [key, value] of Object.entries(this.config)) {
+      $("#" + key).val(value);
+    }
+  }
+
   latest() {
     return this.generations[this.generations.length - 1];
   }
@@ -53,6 +82,10 @@ class Generations {
     this.generations = [pop];
   }
 
+  initRandomRangeFromConfig() {
+    this.initRandomRange(this.config["num-individuals-min"], this.config["num-individuals-max"]);
+  }
+
   initRandomRange(min, max) {
     var pop = new Population();
     pop.initRandomRange(min, max);
@@ -60,7 +93,9 @@ class Generations {
   }
 
   // archetypeIndex is integer 0-n indicating most fit individual
-  createNewGeneration(archetypeIndex, min, max) {
+  createNewGeneration(archetypeIndex) {
+    let min = this.config["num-individuals-min"];
+    let max = this.config["num-individuals-max"];
     if (archetypeIndex === undefined) {
       $.showAlert("You must select an archetype.");
       return;

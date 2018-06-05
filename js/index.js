@@ -3,18 +3,18 @@ import Generations from './generations.js';
 $(function() {
 
   $.exposed = { generations: new Generations() };
+  $.exposed.generations.showConfig();
 
   $("#btn-initialize").click(function(event) {
-    //$(this).prop('disabled', true);
-    var min = parseInt($("#num-individuals-min").val());
-    var max = parseInt($("#num-individuals-max").val());
-    $.exposed.generations.initRandomRange(min, max);
+    $.exposed.generations.readConfig();
+    $.exposed.generations.initRandomRangeFromConfig();
     $.exposed.generations.showInCarousel();
     $("#generations-jumbotron").show();
   });
 
   $("#btn-save").click(function(event) {
     // TODO: choose a filename
+    $.exposed.generations.readConfig();
     $.exposed.generations.saveAsFile();
   });
 
@@ -31,6 +31,7 @@ $(function() {
     var reader = new FileReader();
     reader.onload = function(e) {
       $.exposed.generations = Generations.loadFromHash(JSON.parse(e.target.result));
+      $.exposed.generations.showConfig();
       $.exposed.generations.showInCarousel();
       $("#generations-jumbotron").show();
     };
@@ -39,10 +40,9 @@ $(function() {
 });
 
 jQuery.createNewGeneration = function createNewGeneration() {
-  var min = parseInt($("#num-individuals-min").val());
-  var max = parseInt($("#num-individuals-max").val());
+  $.exposed.generations.readConfig();
   let archetypeIndex = $('input[name=selectedIndividual]:checked').val();
-  $.exposed.generations.createNewGeneration(archetypeIndex, min, max);
+  $.exposed.generations.createNewGeneration(archetypeIndex);
   $.exposed.generations.showInCarousel();
 }
 

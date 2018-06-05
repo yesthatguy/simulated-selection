@@ -18,29 +18,6 @@
 
     <div id="errors"></div>
 
-    <div class="row mb-2">
-      <div class="col">
-        <button id="btn-save" class="btn btn-outline-primary">Save</button>
-        <label id="label-btn-load" class="btn btn-outline-primary label-btn">
-          Load&hellip; <input id="btn-load" type="file" style="display: none;">
-        </label>
-      </div>
-    </div>
-
-    <div class="form-group row">
-      <label for="num-individuals" class="col-form-label">Individuals: min</label>
-      <div class="col">
-        <input id="num-individuals-min" type="number" class="form-control" value="8">
-      </div>
-      <label for="num-individuals" class="col-form-label">Individuals: max</label>
-      <div class="col">
-        <input id="num-individuals-max" type="number" class="form-control" value="12">
-      </div>
-      <div class="col">
-        <button id="btn-initialize" class="btn btn-outline-primary">Initialize</button>
-      </div>
-    </div>
-
     <div id="generations-jumbotron" class="jumbotron" style="display:none">
       <div id="generations-carousel" class="carousel slide" data-ride="carousel" data-wrap="false" data-interval="false">
         <div class="carousel-inner">
@@ -53,6 +30,45 @@
           <span class="carousel-control-next-icon" aria-hidden="true"></span>
           <span class="sr-only">Next</span>
         </a>
+      </div>
+    </div>
+
+    <div class="row mb-2">
+      <div class="col">
+        <button id="btn-initialize" class="btn btn-outline-primary">Initialize</button>
+        <button id="btn-save" class="btn btn-outline-primary">Save</button>
+        <label id="label-btn-load" class="btn btn-outline-primary label-btn">
+          Load&hellip; <input id="btn-load" type="file" style="display: none;">
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <label for="num-individuals-min" class="col-form-label">Individuals: min</label>
+      <div class="col">
+        <input id="num-individuals-min" type="number" class="form-control">
+      </div>
+      <label for="num-individuals-max" class="col-form-label">Individuals: max</label>
+      <div class="col">
+        <input id="num-individuals-max" type="number" class="form-control">
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <label for="array-chromosome-gene-sizes" class="col-form-label">Chromosome Gene Sizes</label>
+      <div class="col">
+        <input id="array-chromosome-gene-sizes" type="text" class="form-control">
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <label for="num-initial-chromosomes" class="col-form-label">Initial number of chromosomes per individual</label>
+      <div class="col">
+        <input id="num-initial-chromosomes" type="text" class="form-control">
+      </div>
+      <label for="num-mutations" class="col-form-label">Number of Mutations</label>
+      <div class="col">
+        <input id="num-mutations" type="text" class="form-control">
       </div>
     </div>
   </div>

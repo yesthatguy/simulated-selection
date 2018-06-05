@@ -34,3 +34,7 @@ table.codon td {
 .tooltip-inner {
   max-width: 550px;
 }
+
+.archetype {
+  background-color: fuchsia;
+}
