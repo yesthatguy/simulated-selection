@@ -26,6 +26,42 @@ table.codon td {
   border: 1px solid black;
 }
 
+table.chromosome-details {
+  display: inline-block;
+  margin: 5px;
+}
+
+table.chromosome-details tr.new-action-row {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+table.chromosome-details td,
+table.chromosome-details th {
+  padding: 1px 5px 1px 5px;
+  border: 1px solid black;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+table.chromosome-details td.property-cell {
+  background-color: #ddd;
+  font-weight: bold;
+}
+
+table.chromosome-details td.sub-property-cell {
+  background-color: #ddd;
+}
+
+table.chromosome-details td.in-cell {
+  background-color: #fff;
+  font-weight: bold;
+}
+
+table.chromosome-details td.out-cell {
+  background-color: #cdfece;
+}
+
 .mutatedCodon {
   color: blue;
   font-weight: bold;

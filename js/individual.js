@@ -41,7 +41,7 @@ class Individual {
   getTooltipHtml() {
     let rows = [];
     if (this.parentIndices) {
-      rows.push("Parents: " + this.parentIndices.join(" + "));
+      rows.push("Parents: " + this.parentIndices.map((x) => x + 1).join(" + "));
     }
     if (this.eliminatedChromosomes.length) {
       rows.push("Eliminated: " + this.eliminatedChromosomes);
@@ -51,20 +51,26 @@ class Individual {
 
   showDetail() {
     let div = $('<div>');
-    div.append("This individual: " + this.index);
+    div.append("This individual: " + (this.index + 1));
     div.append(this.displayAsTable());
     if (this.parentIndices) {
-      div.append("Parents:");
+      div.append($('<div>').append("Parents:"));
       let table = $('<table>');
       for (let parentIndex of this.parentIndices) {
         let parent = $.exposed.generations.getIndividual(this.generationIndex - 1, parentIndex);
         let tr = $('<tr>');
-        tr.append($('<td>').append(parent.index));
+        tr.append($('<td>').append(parent.index + 1));
         tr.append($('<td>').append(parent.displayAsTable()));
         table.append(tr);
       }
       div.append(table);
     }
+    div.append($('<div>').append("Detail:"));
+    let detailDiv = $('<div>');
+    for (let i = 0; i < this.chromosomes.length; i++) {
+      detailDiv.append(this.chromosomes[i].showDetail());
+    }
+    div.append(detailDiv);
     return div;
   }
 
