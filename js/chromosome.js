@@ -27,10 +27,11 @@ class Chromosome {
   displayAsTable() {
     let row = $('<tr>').addClass('text-monospace');
     let index = 0;
-    const CHROMOSOME_GENE_SIZES = $.exposed.generations.config["array-chromosome-gene-sizes"];
+    const CHROMOSOME_GENE_SIZES = $.exposed.generations.config["array-num-chromosome-gene-sizes"];
+    const CHROMOSOME_GENE_COLORS = $.exposed.generations.config["array-chromosome-gene-colors"];
     for(let geneNum = 0; geneNum < CHROMOSOME_GENE_SIZES.length; geneNum++){
       let size = CHROMOSOME_GENE_SIZES[geneNum];
-      let geneTd = $('<td>');
+      let geneTd = $('<td>').css('background-color', CHROMOSOME_GENE_COLORS[geneNum]);
       for (let j = index; j < index + size; j++) {
         let mutated = this.mutatedIndices && this.mutatedIndices.includes(j);
         let codonClass = mutated ? 'mutatedCodon' : '';
@@ -43,7 +44,7 @@ class Chromosome {
   }
 
   static numCodons() {
-    return $.exposed.generations.config["array-chromosome-gene-sizes"].reduce((x, y) => x + y);
+    return $.exposed.generations.config["array-num-chromosome-gene-sizes"].reduce((x, y) => x + y);
   }
 
   hasEliminationGene() {

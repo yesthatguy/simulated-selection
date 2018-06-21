@@ -36,7 +36,8 @@ table.codon td {
 }
 
 .archetype {
-  background-color: fuchsia;
+  font-weight: bold;
+  text-decoration: underline;
 }
 
 .horizontal-scroll {

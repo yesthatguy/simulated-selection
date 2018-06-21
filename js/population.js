@@ -146,7 +146,7 @@ class Population {
         if (showButtons) {
           row.append($('<td>').append($('<input type="radio" name="selectedIndividual" value="' + i + '">')));
         }
-        row.append($('<td>').attr('scope', 'row').text(i));
+        row.append($('<td>').attr('scope', 'row').text(i + 1));
 
         let detailCell = $('<td>').attr('scope', 'row').text("ⓘ");
         let showDetail = this.individuals[i].showDetail.bind(this.individuals[i]);

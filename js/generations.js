@@ -3,7 +3,8 @@ import Population from './population.js';
 export const DEFAULT_CONFIG = {
   "num-individuals-min": 8,
   "num-individuals-max": 12,
-  "array-chromosome-gene-sizes": [7,6,4,2,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,1,1],
+  "array-num-chromosome-gene-sizes": [7,6,4,2,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,1,1],
+  "array-chromosome-gene-colors": ["#FFD3AC", "#FFFCD7", "#D2FEFF", "#FFD9FD", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
   "num-mutations": 2,
   "num-initial-chromosomes": 2
 }
@@ -58,8 +59,10 @@ class Generations {
       if (val !== undefined) {
         if (key.startsWith("num-")) {
           val = parseInt(val);
-        } else if (key.startsWith("array-")) {
+        } else if (key.startsWith("array-num-")) {
           val = val.split(",").map(x => parseInt(x));
+        } else if (key.startsWith("array-")) {
+          val = val.split(",");
         }
         this.config[key] = val;
       }
