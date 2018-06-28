@@ -4,8 +4,8 @@ class Population {
   constructor(opts = {}) {
     this.generationIndex = opts["generationIndex"];
     this.individuals = opts["individuals"] || [];
-    this.previousArchetypeIndex = opts["previousArchetypeIndex"];
     this.archetypeIndex = opts["archetypeIndex"];
+    this.sample = opts["sample"] || [];
   }
 
   toString() {
@@ -42,41 +42,48 @@ class Population {
   // archetypeIndex is integer 0-n indicating archetype's position
   createNewGeneration(archetypeIndex, min, max) {
     this.archetypeIndex = archetypeIndex;
-    this.individuals[archetypeIndex].isArchetype = true;
-    let fitnessScores = this.calculatePopulationFitness(archetypeIndex);
+    let archetype = this.individuals[archetypeIndex];
+    archetype.isArchetype = true;
+    let fitnessScores = this.calculatePopulationFitness(archetype);
+    console.log("fitnessScores", fitnessScores);
     let parentIndices = this.selectNParents(this.getRandomNumIndividuals(min, max), fitnessScores);
     console.log("parentIndices", parentIndices);
     let newIndividuals = this.generateOffspring(parentIndices, fitnessScores);
-    let newPopulation = new Population({"individuals": newIndividuals, "previousArchetypeIndex": archetypeIndex, "generationIndex": this.generationIndex + 1});
+    let newPopulation = new Population({"individuals": newIndividuals, "generationIndex": this.generationIndex + 1});
     newPopulation.mutate();
+    newPopulation.sample = newPopulation.generateSample(archetype);
     return newPopulation;
   }
 
-  calculatePopulationFitness(archetypeIndex) {
-    let archetype = this.individuals[archetypeIndex];
-
+  calculatePopulationFitness(archetype) {
     let differences = [];
+    let archetypeIndex;
     for (let i = 0; i < this.individuals.length; i++) {
       differences.push(this.individuals[i].calculateArrayDifference(archetype));
+      if (this.individuals[i] == archetype) {
+        archetypeIndex = i;
+      }
     }
-    console.log("differences", differences);
+    //console.log("differences", differences);
 
     // Turn array like [24, 30, 21, 2, 4, 1] into a number like 24.5 based on
     // just the first two numbers.
     let maxD1 = Math.max(...differences.map((d) => d[1]));
     let initialFitness = differences.map((d) => d[0] + d[1] / maxD1);
-    console.log("initialFitness", initialFitness);
+    //console.log("initialFitness", initialFitness);
 
     // Limit max probability of archetype
-    let nonArchetypeFitness = initialFitness.filter((x, i) => i != archetypeIndex);
-    let avgFitness = nonArchetypeFitness.reduce((sum, x) => sum + x) / nonArchetypeFitness.length;
-    const MAX_WEIGHT_ARCHETYPE = $.exposed.generations.config["num-max-weight-archetype"];
-    initialFitness[archetypeIndex] = Math.min(initialFitness[archetypeIndex], MAX_WEIGHT_ARCHETYPE * avgFitness);
+    if (archetypeIndex !== undefined) {
+      let nonArchetypeFitness = initialFitness.filter((x, i) => i != archetypeIndex);
+      let avgFitness = nonArchetypeFitness.reduce((sum, x) => sum + x) / nonArchetypeFitness.length;
+      const MAX_WEIGHT_ARCHETYPE = $.exposed.generations.config["num-max-weight-archetype"];
+      initialFitness[archetypeIndex] = Math.min(initialFitness[archetypeIndex], MAX_WEIGHT_ARCHETYPE * avgFitness);
+    }
 
     // Normalize
     let totalFitness = initialFitness.reduce((sum, x) => sum + x);
     let normalizedFitness = initialFitness.map((f) => f / totalFitness);
-    console.log("normalizedFitness", normalizedFitness);
+    //console.log("normalizedFitness", normalizedFitness);
     return normalizedFitness;
   }
 
@@ -140,9 +147,46 @@ class Population {
     this.individuals = this.individuals.filter((i) => !i.isEmpty());
   }
 
+  generateSampleByIndex(archetypeIndex) {
+    console.log("archetypeIndex", archetypeIndex);
+    return this.generateSample(this.individuals[archetypeIndex]);
+  }
+
+  generateSample(archetype) {
+    let fitnessScores = this.calculatePopulationFitness(archetype);
+    // https://stackoverflow.com/questions/11301438/return-index-of-greatest-value-in-an-array
+    let mostFitIndex = fitnessScores.reduce((a, b, i) => a[0] < b ? [b, i] : a, [Number.MIN_VALUE, -1])[1];
+    console.log("fitnessScores", fitnessScores);
+
+    let leastFitIndex = fitnessScores.reduce((a, b, i) => a[0] > b ? [b, i] : a, [Number.MAX_VALUE, -1])[1];
+    console.log("leastFitIndex", leastFitIndex);
+    let leastFitFitnessScores = this.calculatePopulationFitness(this.individuals[leastFitIndex]);
+    let combinedFitnessScores = leastFitFitnessScores.map((x, i) => x + fitnessScores[i]);
+    let thirdIndex = combinedFitnessScores.reduce((a, b, i) => a[0] > b ? [b, i] : a, [Number.MAX_VALUE, -1])[1];
+    console.log("thirdIndex", thirdIndex);
+    return [mostFitIndex, leastFitIndex, thirdIndex];
+  }
+
+  decorateSample(mostFitIndex, leastFitIndex, thirdIndex) {
+    this.clearDecorations();
+    this.decorateRow(mostFitIndex, 'M', 'Most fit');
+    this.decorateRow(leastFitIndex, 'L', 'Least fit');
+    this.decorateRow(thirdIndex, 'D', 'Most different individual');
+  }
+
+  clearDecorations() {
+    $('table.generation-' + this.generationIndex + ' .decorator').empty();
+  }
+
+  decorateRow(i, initial, tooltip) {
+    let div = $('table.generation-' + this.generationIndex + ' tr.individual-' + i + ' td.individual-index .decorator');
+    div.prop('title', tooltip);
+    div.text(initial);
+  }
+
   displayAsTable(showButtons = false) {
     let outerDiv = $('<div>').addClass("horizontal-scroll");
-    var table = $('<table>').addClass('table');
+    var table = $('<table>').addClass('table generation-' + this.generationIndex);
     var headerRow = $('<tr>');
     if (showButtons) {
       headerRow.append($('<th>'));
@@ -153,13 +197,19 @@ class Population {
     table.append(headerRow);
 
     for(var i = 0; i < this.individuals.length; i++){
-        var row = $('<tr>');
+        var row = $('<tr>').addClass('individual-' + i);
         if (showButtons) {
-          row.append($('<td>').append($('<input type="radio" name="selectedIndividual" value="' + i + '">')));
+          let radio = $('<input type="radio" name="selectedIndividual" value="' + i + '">');
+          radio.click((e) => this.decorateSample(...this.generateSampleByIndex(e.target.value)));
+          row.append($('<td>').append(radio));
         }
-        row.append($('<td>').attr('scope', 'row').text(i + 1));
+        let indexCell = $('<td>').attr('scope', 'row').addClass('individual-index');
+        indexCell.append($('<div>').text(i + 1));
+        indexCell.append($('<div>').addClass('decorator'));
+        row.append(indexCell);
 
-        let detailCell = $('<td>').attr('scope', 'row').text("ⓘ");
+        let infoLink = $('<a>').addClass('link-like').text("ⓘ");
+        let detailCell = $('<td>').attr('scope', 'row').append(infoLink);
         let showDetail = this.individuals[i].showDetail.bind(this.individuals[i]);
         detailCell.click(function(e) {
           var div = $(e.currentTarget).closest('.carousel-item').find('.individual-detail');
@@ -168,7 +218,13 @@ class Population {
         });
         row.append(detailCell);
 
-        let individualTd = $('<td>').append(this.individuals[i].displayAsTable());
+        let individualTd = $('<td>').addClass('individual');
+        if (this.sample) {
+          if (i == this.sample[0]) { individualTd.append('M::'); }
+          if (i == this.sample[1]) { individualTd.append('L::'); }
+          if (i == this.sample[2]) { individualTd.append('D::'); }
+        }
+        individualTd.append(this.individuals[i].displayAsTable());
         row.append(individualTd);
         table.append(row);
     }

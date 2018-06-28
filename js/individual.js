@@ -51,7 +51,12 @@ class Individual {
 
   showDetail() {
     let div = $('<div>');
-    div.append("This individual: " + (this.index + 1));
+
+    let closeLink = $('<a>').addClass('link-like').text('(Hide) ');
+    closeLink.click(() => div.empty());
+    div.append(closeLink);
+
+    div.append("Details for individual: " + (this.index + 1));
     div.append(this.displayAsTable());
     if (this.parentIndices) {
       div.append($('<div>').append("Parents:"));
@@ -65,11 +70,14 @@ class Individual {
       }
       div.append(table);
     }
-    div.append($('<div>').append("Detail:"));
+    let detailLinksDiv = $('<div>').append("Click for chromosome detail: ");
     let detailDiv = $('<div>');
     for (let i = 0; i < this.chromosomes.length; i++) {
-      detailDiv.append(this.chromosomes[i].showDetail());
+      let link = $('<a>').addClass('link-like').text((i + 1));
+      link.click(() => this.chromosomes[i].showDetailInDiv(detailDiv));
+      detailLinksDiv.append(link).append(' ');
     }
+    div.append(detailLinksDiv);
     div.append(detailDiv);
     return div;
   }

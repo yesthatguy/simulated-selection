@@ -6,6 +6,11 @@
   margin: 0;
 }
 
+a.link-like:not([href]):not([tabindex]) {
+  color: blue;
+  cursor: pointer;
+}
+
 #generations-carousel {
   margin-left: 80px;
   margin-right: 80px;
@@ -19,6 +24,15 @@
 .carousel-control-next {
   width: 50px;
   margin-right: -50px;
+}
+
+td.individual-index {
+  text-align: center;
+}
+
+td.individual {
+  display: flex;
+  align-items: center;
 }
 
 table.codon td {
@@ -74,6 +88,7 @@ table.chromosome-details td.out-cell {
 .archetype {
   font-weight: bold;
   text-decoration: underline;
+  border: 8px solid fuchsia;
 }
 
 .horizontal-scroll {

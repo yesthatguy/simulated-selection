@@ -43,6 +43,11 @@ class Chromosome {
     return $('<table>').addClass('codon').append(row);
   }
 
+  showDetailInDiv(div) {
+    div.empty();
+    div.append(this.showDetail());
+  }
+
   showDetail() {
     let table = $('<table>').addClass('chromosome-details');
 
