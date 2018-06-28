@@ -6,7 +6,8 @@ export const DEFAULT_CONFIG = {
   "array-num-chromosome-gene-sizes": [7,6,4,2,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,3,1,1,1,1],
   "array-chromosome-gene-colors": ["#FFD3AC", "#FFFCD7", "#D2FEFF", "#FFD9FD", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FF5249", "#6EF582", "#D2FBD7", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
   "num-mutations": 2,
-  "num-initial-chromosomes": 2
+  "num-initial-chromosomes": 2,
+  "num-max-weight-archetype": 3
 }
 
 class Generations {

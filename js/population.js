@@ -42,9 +42,8 @@ class Population {
   // archetypeIndex is integer 0-n indicating archetype's position
   createNewGeneration(archetypeIndex, min, max) {
     this.archetypeIndex = archetypeIndex;
-    let archetype = this.individuals[archetypeIndex];
-    archetype.isArchetype = true;
-    let fitnessScores = this.calculatePopulationFitness(archetype);
+    this.individuals[archetypeIndex].isArchetype = true;
+    let fitnessScores = this.calculatePopulationFitness(archetypeIndex);
     let parentIndices = this.selectNParents(this.getRandomNumIndividuals(min, max), fitnessScores);
     console.log("parentIndices", parentIndices);
     let newIndividuals = this.generateOffspring(parentIndices, fitnessScores);
@@ -53,19 +52,31 @@ class Population {
     return newPopulation;
   }
 
-  calculatePopulationFitness(archetype) {
+  calculatePopulationFitness(archetypeIndex) {
+    let archetype = this.individuals[archetypeIndex];
+
     let differences = [];
     for (let i = 0; i < this.individuals.length; i++) {
       differences.push(this.individuals[i].calculateArrayDifference(archetype));
     }
     console.log("differences", differences);
 
+    // Turn array like [24, 30, 21, 2, 4, 1] into a number like 24.5 based on
+    // just the first two numbers.
     let maxD1 = Math.max(...differences.map((d) => d[1]));
     let initialFitness = differences.map((d) => d[0] + d[1] / maxD1);
     console.log("initialFitness", initialFitness);
 
+    // Limit max probability of archetype
+    let nonArchetypeFitness = initialFitness.filter((x, i) => i != archetypeIndex);
+    let avgFitness = nonArchetypeFitness.reduce((sum, x) => sum + x) / nonArchetypeFitness.length;
+    const MAX_WEIGHT_ARCHETYPE = $.exposed.generations.config["num-max-weight-archetype"];
+    initialFitness[archetypeIndex] = Math.min(initialFitness[archetypeIndex], MAX_WEIGHT_ARCHETYPE * avgFitness);
+
+    // Normalize
     let totalFitness = initialFitness.reduce((sum, x) => sum + x);
     let normalizedFitness = initialFitness.map((f) => f / totalFitness);
+    console.log("normalizedFitness", normalizedFitness);
     return normalizedFitness;
   }
 

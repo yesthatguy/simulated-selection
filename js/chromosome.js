@@ -221,15 +221,14 @@ class Chromosome {
   }
 
   resetScaleGene() {
-    this.codons[Chromosome.numCodons() - 3] = 1;
+    this.codons[Chromosome.numCodons() - 4] = 1;
   }
 
   initRandomCodons() {
     var c = [];
-    for (var i = 0; i < Chromosome.numCodons() - 3; i++) {
+    for (var i = 0; i < Chromosome.numCodons() - 2; i++) {
       c.push(this.generateRandomCodon());
     }
-    c.push(1); // Scale gene always starts at 1
     c.push(1); // Add gene always starts as 1
     c.push(6); // Subtract gene always starts as 6
     return c;
