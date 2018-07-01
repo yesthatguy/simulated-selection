@@ -1,4 +1,7 @@
 export const CODON_MAX_VALUE = 6;
+export const POSITION_FROM_END_ELIMINATION_GENE = 1;
+export const POSITION_FROM_END_DUPLICATION_GENE = 2;
+export const POSITION_FROM_END_SCALE_GENE = 4;
 
 class Chromosome {
   // Hash object can have keys: "codons", "oldCodons", "mutatedIndices"
@@ -214,19 +217,19 @@ class Chromosome {
   }
 
   hasEliminationGene() {
-    return (this.codons[Chromosome.numCodons() - 1] < CODON_MAX_VALUE);
+    return (this.codons[Chromosome.numCodons() - POSITION_FROM_END_ELIMINATION_GENE] < CODON_MAX_VALUE);
   }
 
   hasDuplicationGene() {
-    return (this.codons[Chromosome.numCodons() - 2] > 1);
+    return (this.codons[Chromosome.numCodons() - POSITION_FROM_END_DUPLICATION_GENE] > 1);
   }
 
   resetDuplicationGene() {
-    this.codons[Chromosome.numCodons() - 2] = 1;
+    this.codons[Chromosome.numCodons() - POSITION_FROM_END_DUPLICATION_GENE] = 1;
   }
 
   resetScaleGene() {
-    this.codons[Chromosome.numCodons() - 4] = 1;
+    this.codons[Chromosome.numCodons() - POSITION_FROM_END_SCALE_GENE] = 1;
   }
 
   initRandomCodons() {
@@ -280,12 +283,10 @@ class Chromosome {
 
     // Mutate those indices
     for (let index of this.mutatedIndices) {
-      if (index == Chromosome.numCodons() - 3) {
+      if (index == Chromosome.numCodons() - POSITION_FROM_END_SCALE_GENE) {
         // Scale gene can only go up or down one number
         let min = Math.max(this.codons[index] - 1, 1);
         let max = Math.min(this.codons[index] + 1, CODON_MAX_VALUE);
-        console.log("min", min);
-        console.log("max", max);
         // From https://stackoverflow.com/a/1527820/6996496
         this.codons[index] = Math.floor(Math.random() * (max - min + 1)) + min;
       } else {
