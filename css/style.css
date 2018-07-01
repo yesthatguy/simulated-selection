@@ -11,9 +11,18 @@ a.link-like:not([href]):not([tabindex]) {
   cursor: pointer;
 }
 
+#top-container {
+  max-width: 100%;
+  padding: 1rem 2rem;
+}
+
+#generations-jumbotron {
+  padding: 2rem 0;
+}
+
 #generations-carousel {
-  margin-left: 80px;
-  margin-right: 80px;
+  margin-left: 60px;
+  margin-right: 60px;
 }
 
 .carousel-control-prev {
